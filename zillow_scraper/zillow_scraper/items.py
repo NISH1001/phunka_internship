@@ -10,5 +10,5 @@ import scrapy
 
 class ZillowScraperItem(scrapy.Item):
     # define the fields for your item here like:
+    location = scrapy.Field()
     link = scrapy.Field()
-    pass
