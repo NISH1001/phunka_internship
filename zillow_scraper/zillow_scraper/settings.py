@@ -66,8 +66,8 @@ ROBOTSTXT_OBEY = True
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 
 ITEM_PIPELINES = {
-    'zillow_scraper.pipelines.ZillowScraperPipeline': 300,
-    'zillow_scraper.pipelines.ZillowImagesPipeline': 300,
+    'zillow_scraper.pipelines.ZillowScraperPipeline': 100,
+    'zillow_scraper.pipelines.ZillowImagesPipeline': 900,
     #'scrapy.pipelines.images.ImagesPipeline': 300,
     #'zillow_scraper.pipelines.ImagesPipeline': 600,
 }
