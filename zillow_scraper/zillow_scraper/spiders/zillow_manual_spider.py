@@ -72,12 +72,21 @@ class TestSpider(BaseSpider):
         item['county_website'] = cw if cw is not None else ''
 
         # extract agent names
+        """
         agent_divs = response.xpath("//div[contains(@class, 'recipients')]")
         names = agent_divs[0].xpath(".//a[@class='profile-name-link']/text()").extract()
         phones = agent_divs[0].xpath(".//span[@class='snl phone']/text()").extract()
         item['agents'] = [ {'name' : name, 'phone' : phones[index]} for index, name in enumerate(names) ] if names and phones else []
+        """
 
+        item['image_urls'] = hxs.xpath("//img[@class='hip-photo']/@href").extract()
         yield item
+        """
+        #item['image_urls'] = []
+        for img in imgs:
+            path = img.xpath("@href").extract()
+            print('-'*30, path)
+        """
 
 
 

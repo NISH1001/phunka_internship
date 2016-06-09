@@ -64,9 +64,13 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'zillow_scraper.pipelines.SomePipeline': 300,
-#}
+
+ITEM_PIPELINES = {
+    'zillow_scraper.pipelines.ZillowScraperPipeline': 300,
+    'zillow_scraper.pipelines.ZillowImagesPipeline': 300,
+    #'scrapy.pipelines.images.ImagesPipeline': 300,
+    #'zillow_scraper.pipelines.ImagesPipeline': 600,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -88,3 +92,5 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+IMAGES_STORE = '/home/paradox/Nish/Programming/Python/virtualenv/phunka_internship/projects/phunka_internship/data/zillowdata/images'

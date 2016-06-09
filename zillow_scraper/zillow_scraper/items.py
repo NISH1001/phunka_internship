@@ -25,5 +25,7 @@ class ZillowScraperItem(scrapy.Item):
     construction = scrapy.Field()
     other = scrapy.Field()
     county_website = scrapy.Field()
-    agents = scrapy.Field()
+    #agents = scrapy.Field()
     url = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
