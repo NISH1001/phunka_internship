@@ -4,13 +4,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.url import URL
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy.orm import sessionmaker
 
 import settings
 
 DeclarativeBase = declarative_base()
 
 def db_connect():
-    return create_engine(URL(**settings.DATABASE))
+    return create_engine(URL(**settings.DATABASE), echo=True)
 
 def create_amplitude_table(engine):
     DeclarativeBase.metadata.create_all(engine)
@@ -37,8 +38,8 @@ class Amplitude(DeclarativeBase):
     country = Column('country', String)
     region = Column('region', String)
     language = Column('language', String)
-    longitude = Column('longitude', String)
-    latitude = Column('latitude', String)
+    location_lng = Column('longitude', String)
+    location_lat = Column('latitude', String)
 
     event_time = Column('event_time', DateTime)
     client_event_time = Column('client_event_time', DateTime)
@@ -52,13 +53,22 @@ class Amplitude(DeclarativeBase):
     library = Column('library', String)
     amplitude_event_type = Column('amplitude_event_type', String)
     version_name = Column('version_name', String)
-    ip_addres = Column('ip_addres', String)
+    ip_address = Column('ip_addres', String)
     paying = Column('paying', String)
+    user_id = Column('user_id', String)
+
+    def __str__(self):
+        return str(self.id)
 
 
 def main():
-    print(db_connect())
+    engine = db_connect()
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
 if __name__ == "__main__":
     main()
+
+
+
 

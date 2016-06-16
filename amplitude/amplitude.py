@@ -9,6 +9,9 @@ import json
 import shutil
 import tempfile
 
+from models import *
+from sqlalchemy import inspect
+
 API_KEY = "e6166c7b0b4702b98e06035087ceec57"
 SECRET_KEY = "0d3b7d2c3df2d4cebe39bb2a900dfae7"
 
@@ -19,7 +22,7 @@ class ManualError(Exception):
     def display(self):
         print(''.join(self.args))
 
-class Amplitude:
+class AmplitudeClass:
     def __init__(self, api_key, secret_key, start, end):
         self.api_key = api_key
         self.secret_key = secret_key
@@ -100,14 +103,36 @@ class Amplitude:
                 dicts += data
         self.data = dicts
         return dicts
+
+    def insert_all(self):
+        engine = db_connect()
+        #DeclarativeBase.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        mapper = inspect(Amplitude)
+        attr_names = [c_attr.key for c_attr in mapper.mapper.column_attrs]
+
+        for dictionary in self.data:
+            tup = tuple()
+            d = {}
+            for attr in attr_names:
+                try:
+                    d[attr] = dictionary[attr]
+                except KeyError:
+                    d[attr] = ''
+            amp = Amplitude(**d)
+            session.add(amp)
+        session.commit()
+
     
 def main():
-    amp = Amplitude(API_KEY, SECRET_KEY, "20160610", "20160612")
+    amp = AmplitudeClass(API_KEY, SECRET_KEY, "20160610", "20160612")
     #print(amp.get_response())
     #amp.extract()
     #amp.unzip_recursively("./data/testzip")
     data = amp.read_json_all("../data/amplitude/")
-    print(data[0].keys())
+    amp.insert_all()
 
 if __name__ == "__main__":
     main()
