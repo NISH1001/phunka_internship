@@ -9,11 +9,14 @@ import json
 import shutil
 import tempfile
 
-from models import *
 from sqlalchemy import inspect
 
-API_KEY = "e6166c7b0b4702b98e06035087ceec57"
-SECRET_KEY = "0d3b7d2c3df2d4cebe39bb2a900dfae7"
+from models import *
+
+import settings
+
+#datetime.date.today().strftime("%Y%m%d")
+
 
 class ManualError(Exception):
     def __init__(self, args):
@@ -24,8 +27,11 @@ class ManualError(Exception):
 
 class AmplitudeClass:
     def __init__(self, api_key, secret_key, start, end):
+        self.path = "../data/amplitude/"
         self.api_key = api_key
         self.secret_key = secret_key
+        self.start = start
+        self.end = end
         self.url = "https://amplitude.com/api/2/export?start={}T5&end={}T20".format(start, end)
         self.response = None
         self.data = []
@@ -35,14 +41,17 @@ class AmplitudeClass:
         self.response = requests.get(self.url, auth=(self.api_key, self.secret_key) )
         return self.response.status_code
 
-    """
     def extract(self):
         try:
             if self.response.status_code != 200:
                 raise ManualError("lol.. retard response...")
 
             zips = zipfile.ZipFile(io.BytesIO(self.response.content))
-            zips.extractall("./data/")
+            #path =  self.path + str(self.start) + str(self.end)
+            path = self.get_current_path()
+            print(path)
+            zips.extractall(path)
+            """
             for z in zips.namelist():
                 dirname = os.path.splitext(z)[0]
                 jsonname = dirname.split("/")[1]
@@ -53,16 +62,12 @@ class AmplitudeClass:
                 tempzip = zipfile.ZipFile(zio, 'w')
                 tempzip.writestr("./data/" + jsonname, zio.getvalue())
                 tempzip.extractall()
+            """
 
         except ManualError as merr:
             merr.display()
             return False
         return True
-    """
-
-    def extract(self):
-        with open("./data/testzip", "wb") as fp:
-            fp.write(self.response.content)
 
     # as for now, recursive unzipping doesn't work :/
     def unzip_recursively(self, parent_archive):
@@ -152,17 +157,20 @@ class AmplitudeClass:
         print('-' * 30)
         print("Total rows : ", len(list(amps)))
 
+    def get_current_path(self):
+        return self.path + self.start + "-" + self.end + "/"
+
     
 def main():
-    amp = AmplitudeClass(API_KEY, SECRET_KEY, "20160610", "20160612")
+    amp = AmplitudeClass(settings.API_KEY, settings.SECRET_KEY, "20160601", "20160610")
     #print(amp.get_response())
     #amp.extract()
-    #amp.unzip_recursively("./data/testzip")
-    #amp.createdb()
-    #data = amp.read_json_all("../data/amplitude/")
-    #amp.insert_all()
+    print(amp.get_current_path())
+    data = amp.read_json_all(amp.get_current_path())
+    amp.createdb()
+    amp.insert_all()
     #amp.query_all()
-    amp.query_single( {'uuid':"238f666a-2eca-11e6-b6a6-22000a5981c8"} )
+    #amp.query_single( {'uuid':"238f666a-2eca-11e6-b6a6-22000a5981c8"} )
 
 if __name__ == "__main__":
     main()
