@@ -104,9 +104,12 @@ class AmplitudeClass:
         self.data = dicts
         return dicts
 
+    def createdb(self):
+        engine = db_connect()
+        DeclarativeBase.metadata.create_all(engine)
+
     def insert_all(self):
         engine = db_connect()
-        #DeclarativeBase.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -118,12 +121,15 @@ class AmplitudeClass:
             d = {}
             for attr in attr_names:
                 try:
-                    d[attr] = dictionary[attr]
+                    d[attr] = str(dictionary[attr])
+                    #print(type(d[attr]), attr,  d[attr])
                 except KeyError:
                     d[attr] = ''
             amp = Amplitude(**d)
+            print(amp.uuid)
             session.add(amp)
         session.commit()
+        session.close()
 
     
 def main():
@@ -131,6 +137,7 @@ def main():
     #print(amp.get_response())
     #amp.extract()
     #amp.unzip_recursively("./data/testzip")
+    #amp.createdb()
     data = amp.read_json_all("../data/amplitude/")
     amp.insert_all()
 
