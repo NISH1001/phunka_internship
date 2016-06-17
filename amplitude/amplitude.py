@@ -126,10 +126,31 @@ class AmplitudeClass:
                 except KeyError:
                     d[attr] = ''
             amp = Amplitude(**d)
-            print(amp.uuid)
+            print(amp)
             session.add(amp)
         session.commit()
         session.close()
+
+    def query_all(self):
+        engine = db_connect()
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        amps = session.query(Amplitude).all()
+        self.__display(amps)
+
+    def query_single(self, d):
+        engine = db_connect()
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        amps = session.query(Amplitude).filter_by(**d)
+        self.__display(amps)
+
+    def __display(self, amps):
+        for amp in amps:
+            print(amp.__dict__)
+            print('=' * 50)
+        print('-' * 30)
+        print("Total rows : ", len(list(amps)))
 
     
 def main():
@@ -138,8 +159,10 @@ def main():
     #amp.extract()
     #amp.unzip_recursively("./data/testzip")
     #amp.createdb()
-    data = amp.read_json_all("../data/amplitude/")
-    amp.insert_all()
+    #data = amp.read_json_all("../data/amplitude/")
+    #amp.insert_all()
+    #amp.query_all()
+    amp.query_single( {'uuid':"238f666a-2eca-11e6-b6a6-22000a5981c8"} )
 
 if __name__ == "__main__":
     main()

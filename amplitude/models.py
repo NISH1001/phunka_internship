@@ -19,8 +19,8 @@ def create_amplitude_table(engine):
 class Amplitude(DeclarativeBase):
     __tablename__ = "amplitude"
     
-    pk                      = Column(Integer, primary_key=True)
-    uuid                    = Column(String)
+    #pk                      = Column(Integer, primary_key=True)
+    uuid                    = Column(String, primary_key=True)
     app                     = Column(String)
 
     # device info
@@ -58,7 +58,7 @@ class Amplitude(DeclarativeBase):
     user_id                 = Column(String)
 
     def __str__(self):
-        return str(self.id)
+        return str(self.uuid)
 
 
 def main():
