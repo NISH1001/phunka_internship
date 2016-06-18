@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import requests
-import zipfile
+import zipfile, gzip
 import io
 import os
 import glob
@@ -13,7 +13,6 @@ from sqlalchemy import inspect
 
 from models import *
 
-import settings
 
 #datetime.date.today().strftime("%Y%m%d")
 
@@ -46,52 +45,35 @@ class AmplitudeClass:
             if self.response.status_code != 200:
                 raise ManualError("lol.. retard response...")
 
+            # extract the root zip and rename it according to start-end dates
             zips = zipfile.ZipFile(io.BytesIO(self.response.content))
-            #path =  self.path + str(self.start) + str(self.end)
             path = self.get_current_path()
-            print(path)
-            zips.extractall(path)
-            """
-            for z in zips.namelist():
-                dirname = os.path.splitext(z)[0]
-                jsonname = dirname.split("/")[1]
-                print(jsonname)
-                content = zips.read(z)
-                zio = io.BytesIO()
-                zio.write(content)
-                tempzip = zipfile.ZipFile(zio, 'w')
-                tempzip.writestr("./data/" + jsonname, zio.getvalue())
-                tempzip.extractall()
-            """
+            zips.extractall(self.path)
+            root_zip = zips.namelist()[0].split('/')[0]
+            shutil.move(self.path + root_zip, self.get_current_path())
+
+            path = self.get_current_path()
+            files = os.listdir(self.get_current_path())
+            #files = glob.glob(self.get_current_path())
+            for fname in files:
+                self._extract(path, fname)
+                os.remove(path + fname)
 
         except ManualError as merr:
             merr.display()
             return False
         return True
 
-    # as for now, recursive unzipping doesn't work :/
-    def unzip_recursively(self, parent_archive):
-        parent_archive = zipfile.ZipFile(parent_archive)
-        result = {}
-        tmpdir = tempfile.mkdtemp()
-        try:
-            parent_archive.extractall(path=tmpdir)
-            namelist=parent_archive.namelist()
-            for name in namelist[1:]:
-                innerzippath = os.path.join(tmpdir, name)
-                inner_zip = zipfile.ZipFile(innerzippath)
-                inner_extract_path = innerzippath+'.content'
-                if not os.path.exists(inner_extract_path):
-                    os.makedirs(inner_extract_path)
-                inner_zip.extractall(path=inner_extract_path)
-    
-                for inner_file_name in inner_zip.namelist():
-                    result[inner_file_name] = open(os.path.join(inner_extract_path, inner_file_name)).read()
-                inner_zip.close()
-        finally:
-            #shutil.rmtree(tmpdir)
-            pass
-        return result
+    def _extract(self, path,  filename):
+        total_path = path + filename
+        print(total_path)
+        gzfile = gzip.open(total_path, 'rb')
+        outfname = filename.split(".")[:-1]
+        outfile = open(path + '.'.join(outfname), 'wb')
+        outfile.write(gzfile.read())
+        gzfile.close()
+        outfile.close()
+
 
     # read single file
     def _read_json(self, filename):
@@ -159,18 +141,9 @@ class AmplitudeClass:
 
     def get_current_path(self):
         return self.path + self.start + "-" + self.end + "/"
-
     
 def main():
-    amp = AmplitudeClass(settings.API_KEY, settings.SECRET_KEY, "20160601", "20160610")
-    #print(amp.get_response())
-    #amp.extract()
-    print(amp.get_current_path())
-    data = amp.read_json_all(amp.get_current_path())
-    amp.createdb()
-    amp.insert_all()
-    #amp.query_all()
-    #amp.query_single( {'uuid':"238f666a-2eca-11e6-b6a6-22000a5981c8"} )
+    pass
 
 if __name__ == "__main__":
     main()

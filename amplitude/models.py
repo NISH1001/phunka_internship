@@ -17,7 +17,7 @@ def create_amplitude_table(engine):
     DeclarativeBase.metadata.create_all(engine)
 
 class Amplitude(DeclarativeBase):
-    __tablename__ = "amplitude"
+    __tablename__ = "users"
     
     #pk                      = Column(Integer, primary_key=True)
     uuid                    = Column(String, primary_key=True)
