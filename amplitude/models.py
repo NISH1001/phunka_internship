@@ -11,7 +11,7 @@ import settings
 DeclarativeBase = declarative_base()
 
 def db_connect():
-    return create_engine(URL(**settings.DATABASE), echo=True)
+    return create_engine(URL(**settings.DATABASE), echo=False)
 
 def create_amplitude_table(engine):
     DeclarativeBase.metadata.create_all(engine)
