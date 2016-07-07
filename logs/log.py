@@ -20,6 +20,7 @@ class LogGenerator:
     def __init__(self):
         self.data = None
         self.template = None
+        self.eps = 0
 
     # load the JSON file
     def load(self, filename):
@@ -46,13 +47,15 @@ class LogGenerator:
         return [ self.__generate_single(d) for i in range(eps) ]
 
     # generate random byte
-    def __generate_bytes(self, var):
+    def __generate_random(self, var):
         return random.randint(var['start'], var['end'])
 
     # generate eps no. of event per second
     def generate(self, template):
         self.template = template['template']
         eps = template['eps']
+        self.eps = eps
+        """
         data = {
                 'byte'          : [], 
                 'src_ip'        : [], 
@@ -64,16 +67,20 @@ class LogGenerator:
                 'url'           : [], 
                 'time_format'   : ''
             }
+        """
+        data = {}
         variables = template['vars']
         for var in variables:
-            if var['name'] == "bytes":
-                data['bytes'] = [ self.__generate_bytes(var) for i in range(eps) ]
+            if var['type'] == "random_number":
+                data[var['name']] = [ self.__generate_random(var) for i in range(eps) ]
             elif var['name'] == 'dest_ip':
                 continue
-            elif var['name'] == 'date':
+            elif var['type'] == 'datetime':
                 data['time_format'] =  var['format']
-            else:
+            elif var['type'] == "standard":
                 data[var['name']] = self.__generate(eps, var)
+            else:
+                continue
         return data
 
     # generate n event values per second in a given specific timestamp
@@ -85,6 +92,7 @@ class LogGenerator:
             data = self.generate(template)
             event['data'] = data
             date = datetime.datetime.fromtimestamp(start).strftime(data['time_format'])
+            del data['time_format']
             event['date'] = date.strip()
             yield event
             start += 1
@@ -100,14 +108,19 @@ class LogGenerator:
     # finally generate the log with loging format specified
     def generate_log(self, event):
         data = event['data']
+        """
         src_ip = data['src_ip']
         code = data['code']
         method = data['method']
         byte = data['bytes']
-        n = len(src_ip)
+        """
+        #n = len(src_ip)
+        n = self.eps
         logs = []
         for i in range(n):
-            log = {'src_ip' : src_ip[i], 'method' : method[i], 'code' : code[i], 'bytes' : byte[i], 'date' : event['date'] }
+            log = { key : data[key][i] for key in data }
+            log['date'] = event['date']
+            #log = {'src_ip' : src_ip[i], 'method' : method[i], 'code' : code[i], 'bytes' : byte[i], 'date' : event['date'] }
             logs.append(self.__substitute(log))
         return logs
 

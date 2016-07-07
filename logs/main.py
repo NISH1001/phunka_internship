@@ -9,10 +9,11 @@ def main():
     #generated = generator.generate(generator.data['templates'][0])
     with open(logfile, 'w') as f:
         for event in generator.generate_eps(data['templates'][0]):
+        #for event in generator.generate_eps(data['transactions'][0]['events'][0]):
             logs = generator.generate_log(event)
             logstr = '\n'.join(logs)
             print('\n'.join(logs))
-            f.write(logstr+'\n')
+            #f.write(logstr+'\n')
 
 if __name__ == "__main__":
     main()
