@@ -7,19 +7,27 @@ import random
 import collections
 import datetime
 
+# helper to remove comments for non-standard JSON file
 def remove_comments(string):
     return re.sub(r"//.*?\n", "\n", string)
 
+"""
+    LogGenerator class
+    - parses the format
+    - generates log on the basis of eps (events per seconds)
+"""
 class LogGenerator:
     def __init__(self):
         self.data = None
         self.template = None
 
+    # load the JSON file
     def load(self, filename):
         datastr = remove_comments(open(filename).read())
         self.data = json.loads(datastr)
         return self.data
 
+    # generate single value based on weighted distribution
     def __generate_single(self, d):
         number = random.random() * sum(d.values())
         for k,v in d.items():
@@ -28,6 +36,7 @@ class LogGenerator:
             number -= v
         return k
 
+    # generate eps no. of values
     def __generate(self, eps, var):
         vals = var['vals']
         nums = len(vals)
@@ -36,26 +45,51 @@ class LogGenerator:
             d[val['val']] = val['weight']
         return [ self.__generate_single(d) for i in range(eps) ]
 
+    # generate random byte
     def __generate_bytes(self, var):
         return random.randint(var['start'], var['end'])
 
+    # generate eps no. of event per second
     def generate(self, template):
         self.template = template['template']
-        start = self.data['start']
-        end = self.data['end']
-        #eps = template['eps']
-        eps = 10
-        data = {'byte' : [], 'src_ip' : [], 'dest_ip' : [], 'code' : [], 'method' : [], 'date' : [], 'bytes' : [], 'url' : []}
+        eps = template['eps']
+        data = {
+                'byte'          : [], 
+                'src_ip'        : [], 
+                'dest_ip'       : [], 
+                'code'          : [], 
+                'method'        : [], 
+                'date'          : [], 
+                'bytes'         : [], 
+                'url'           : [], 
+                'time_format'   : ''
+            }
         variables = template['vars']
         for var in variables:
             if var['name'] == "bytes":
                 data['bytes'] = [ self.__generate_bytes(var) for i in range(eps) ]
-            elif var['name'] == 'date' or var['name'] == 'dest_ip':
+            elif var['name'] == 'dest_ip':
                 continue
+            elif var['name'] == 'date':
+                data['time_format'] =  var['format']
             else:
                 data[var['name']] = self.__generate(eps, var)
         return data
 
+    # generate n event values per second in a given specific timestamp
+    def generate_eps(self, template):
+        start = self.data['start']
+        end = self.data['end']
+        event = {}
+        while start <= end:
+            data = self.generate(template)
+            event['data'] = data
+            date = datetime.datetime.fromtimestamp(start).strftime(data['time_format'])
+            event['date'] = date.strip()
+            yield event
+            start += 1
+
+    # fill the log format with data
     def __substitute(self, data):
         tosub = ''
         t = self.template[:]
@@ -63,7 +97,9 @@ class LogGenerator:
             t = re.sub(r"<%{}%>".format(key), str(data[key]), t)
         return t
     
-    def generate_log(self, data):
+    # finally generate the log with loging format specified
+    def generate_log(self, event):
+        data = event['data']
         src_ip = data['src_ip']
         code = data['code']
         method = data['method']
@@ -71,18 +107,12 @@ class LogGenerator:
         n = len(src_ip)
         logs = []
         for i in range(n):
-            #log = "{} {} {} {}".format(src_ip[i], method[i], code[i], byte[i])
-            log = {'src_ip' : src_ip[i], 'method' : method[i], 'code' : code[i], 'bytes' : byte[i] }
-            l = self.__substitute(log)
-            logs.append(l)
+            log = {'src_ip' : src_ip[i], 'method' : method[i], 'code' : code[i], 'bytes' : byte[i], 'date' : event['date'] }
+            logs.append(self.__substitute(log))
         return logs
 
 def main():
-    generator = LogGenerator()
-    data = generator.load( "../data/logscript/ssh_brute_force_apache.json")
-    generated = generator.generate(generator.data['templates'][0])
-    logs = generator.generate_log(generated)
-    print('\n'.join(logs))
+    pass
 
 if __name__ == "__main__":
     main()
