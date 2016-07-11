@@ -20,7 +20,8 @@ class LogGenerator:
     def __init__(self):
         self.data = None
         self.template = None
-        self.eps = 0
+        self.eps = None
+        self.event_counter = 0
 
     # load the JSON file
     def load(self, filename):
@@ -53,23 +54,11 @@ class LogGenerator:
     # generate eps no. of event per second
     def generate(self, template):
         self.template = template['template']
-        eps = template['eps']
-        self.eps = eps
-        """
-        data = {
-                'byte'          : [], 
-                'src_ip'        : [], 
-                'dest_ip'       : [], 
-                'code'          : [], 
-                'method'        : [], 
-                'date'          : [], 
-                'bytes'         : [], 
-                'url'           : [], 
-                'time_format'   : ''
-            }
-        """
         data = {}
         variables = template['vars']
+        eps = template['eps']
+        self.eps = eps
+        self.event_counter = eps
         for var in variables:
             if var['type'] == "random_number":
                 data[var['name']] = [ self.__generate_random(var) for i in range(eps) ]
@@ -82,6 +71,46 @@ class LogGenerator:
             else:
                 continue
         return data
+
+    def generate_transaction_single(self, transaction):
+        template = transaction['events'][0]
+        self.template = template['template']
+        repeat = template['repeat']
+        repeat = random.randint(repeat['lowest'], repeat['highest'])
+        delay_before = template['delay_before']
+        delay_before = random.randint(delay_before['lowest'], delay_before['highest'])
+        delay = template['delay']
+        delay = random.uniform(delay['lowest'], delay['highest'])
+        data = {}
+        variables = template['vars']
+        for var in variables:
+            if var['type'] == "random_number":
+                data[var['name']] = self.__generate_random(var)
+            elif var['name'] == 'dest_ip':
+                continue
+            elif var['type'] == 'datetime':
+                data['time_format'] =  var['format']
+            elif var['type'] == "standard":
+                data[var['name']] = self.__generate(1, var)[0]
+            else:
+                continue
+        return {'data' : data, 'delay' : delay, 'delay_before' : delay_before, 'repeat' : repeat}
+
+    def generate_transaction_all(self, transaction):
+        start = self.data['start']
+        end = self.data['end']
+        event = {}
+        while start <= end:
+            single = self.generate_transaction_single(transaction)
+            start += single['delay_before']
+            data = single['data']
+            date = datetime.datetime.fromtimestamp(start).strftime(data['time_format'])
+            data['date'] = date
+            del data['time_format']
+            log = self.__substitute(data)
+            logs = [ log for i in range(single['repeat']) ]
+            yield logs
+            start += single['delay']
 
     # generate n event values per second in a given specific timestamp
     def generate_eps(self, template):

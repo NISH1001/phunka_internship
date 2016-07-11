@@ -8,12 +8,16 @@ def main():
     data = generator.load( "../data/logscript/ssh_brute_force_apache.json")
     #generated = generator.generate(generator.data['templates'][0])
     with open(logfile, 'w') as f:
-        for event in generator.generate_eps(data['templates'][0]):
-        #for event in generator.generate_eps(data['transactions'][0]['events'][0]):
-            logs = generator.generate_log(event)
-            logstr = '\n'.join(logs)
+        #for event in generator.generate_eps(data['templates'][0]):
+        """
+        for event in generator.generate_eps(data['transactions'][0]['events'][0]):
+            #logs = generator.generate_log(event)
             print('\n'.join(logs))
             #f.write(logstr+'\n')
+        """
+        for logs in generator.generate_transaction_all(data['transactions'][0]):
+            logstr = '\n'.join(logs)
+            f.write(logstr+'\n')
 
 if __name__ == "__main__":
     main()
