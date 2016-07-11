@@ -20,8 +20,10 @@ class LogGenerator:
     def __init__(self):
         self.data = None
         self.template = None
+        self.event = []
         self.eps = None
-        self.event_counter = 0
+        self.start = 0
+        self.end = 0
 
     # load the JSON file
     def load(self, filename):
@@ -51,7 +53,7 @@ class LogGenerator:
     def __generate_random(self, var):
         return random.randint(var['start'], var['end'])
 
-    # generate eps no. of event per second
+    # generate eps no. of event per second -> for apache log
     def generate(self, template):
         self.template = template['template']
         data = {}
@@ -72,9 +74,14 @@ class LogGenerator:
                 continue
         return data
 
+    # set a specific event
+    def set_event(self, event):
+        self.event = event
+
+    #for single transaction
     def generate_transaction_single(self, transaction):
-        template = transaction['events'][0]
-        self.template = template['template']
+        template = self.event
+        self.template = self.event['template']
         repeat = template['repeat']
         repeat = random.randint(repeat['lowest'], repeat['highest'])
         delay_before = template['delay_before']
@@ -96,6 +103,7 @@ class LogGenerator:
                 continue
         return {'data' : data, 'delay' : delay, 'delay_before' : delay_before, 'repeat' : repeat}
 
+    # for transactions
     def generate_transaction_all(self, transaction):
         start = self.data['start']
         end = self.data['end']
@@ -113,6 +121,7 @@ class LogGenerator:
             start += single['delay']
 
     # generate n event values per second in a given specific timestamp
+    # this function is used for apache log only
     def generate_eps(self, template):
         start = self.data['start']
         end = self.data['end']
@@ -134,7 +143,7 @@ class LogGenerator:
             t = re.sub(r"<%{}%>".format(key), str(data[key]), t)
         return t
     
-    # finally generate the log with loging format specified
+    # finally generate the log with loging format specified -> for apache logs
     def generate_log(self, event):
         data = event['data']
         """
