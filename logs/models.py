@@ -22,21 +22,24 @@ class Ticket(DeclarativeBase):
     timestamp       = Column(String) 
     issue           = Column(String)
     
-
     def __str__(self):
         return str(self.user)
 
 class Update(DeclarativeBase):
     __tablename__ = "updates"
 
-    ticket          = Column(String, primary_key=True)
+    ticket          = Column(Integer, primary_key=True)
     user            = Column(String)
     timestamp       = Column(String) 
     issue           = Column(String)
-    
 
     def __str__(self):
         return str(self.user)
+
+class Increment(DeclarativeBase):
+    __tablename__ = "increments"
+    pk          = Column(String, primary_key=True)
+    ticketstate = Column(Integer)
 
 
 def main():
