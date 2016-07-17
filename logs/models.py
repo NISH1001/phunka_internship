@@ -17,9 +17,9 @@ def create_amplitude_table(engine):
 class Ticket(DeclarativeBase):
     __tablename__ = "tickets"
 
+    ticket          = Column(Integer, primary_key=True, autoincrement=True)
     user            = Column(String)
     timestamp       = Column(String) 
-    ticket          = Column(String)
     issue           = Column(String)
     
 
@@ -29,9 +29,9 @@ class Ticket(DeclarativeBase):
 class Update(DeclarativeBase):
     __tablename__ = "updates"
 
+    ticket          = Column(String, primary_key=True)
     user            = Column(String)
     timestamp       = Column(String) 
-    ticket          = Column(String)
     issue           = Column(String)
     
 
