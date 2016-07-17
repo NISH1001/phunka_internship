@@ -14,10 +14,25 @@ def db_connect():
 def create_amplitude_table(engine):
     DeclarativeBase.metadata.create_all(engine)
 
-class Support(DeclarativeBase):
+class Ticket(DeclarativeBase):
     __tablename__ = "tickets"
 
-    user = Column(string)
+    user            = Column(String)
+    timestamp       = Column(String) 
+    ticket          = Column(String)
+    issue           = Column(String)
+    
+
+    def __str__(self):
+        return str(self.user)
+
+class Update(DeclarativeBase):
+    __tablename__ = "updates"
+
+    user            = Column(String)
+    timestamp       = Column(String) 
+    ticket          = Column(String)
+    issue           = Column(String)
     
 
     def __str__(self):
