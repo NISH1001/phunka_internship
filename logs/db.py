@@ -144,18 +144,7 @@ class DBHandler:
         print("Total rows : ", len(list(data)))
 
 def main():
-    logfile = '../data/logscript/logdb'
-    with open(logfile, 'w') as f:
-        generator = LogDB()
-        generator.load( "../data/logscript/mysql_entries.json")
-        data = generator.generate_event()
-        for datalist in generator.generate_event_many():
-            db = DBHandler()
-            db.createdb()
-            db.data = datalist
-            db.insert_all(Ticket)
-        #db.query_single(Ticket,  {"ticket" : "1000" })
-        #db.query_all(Ticket)
+    pass
 
 if __name__ == "__main__":
     main()
