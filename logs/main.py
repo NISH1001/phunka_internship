@@ -4,7 +4,7 @@ import sys
 
 from log import LogGenerator
 from db import LogDB, DBHandler
-from models import Ticket
+from models import Ticket, Update
 
 def gen_apache(jsonfile, logfile, dump=False):
     with open(logfile, 'w') as f:
@@ -33,14 +33,24 @@ def gen_auth(jsonfile, logfile, dump=False):
 def gen_sql(jsonfile, dump=False):
     generator = LogDB()
     generator.load(jsonfile)
-    data = generator.generate_event()
-    for datalist in generator.generate_event_many():
+    #events = generator.data['transactions'][0]['events']
+    for datalist in generator.generate_event_many(generator.events[0]):
         if dump:
-            print("... dumping to db")
+            print("... dumping to db : tickets Table")
             db = DBHandler()
             db.createdb()
             db.data = datalist
             db.insert_all(Ticket)
+        else:
+            print(datalist)
+
+    for datalist in generator.generate_event_many(generator.events[1]):
+        if dump:
+            print("... dumping to db : updates table")
+            db = DBHandler()
+            db.createdb()
+            db.data = datalist
+            db.insert_all(Update)
         else:
             print(datalist)
 

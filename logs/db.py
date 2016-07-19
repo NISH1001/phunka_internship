@@ -14,12 +14,14 @@ class LogDB:
         self.data = None
         self.start = 0
         self.end = 0
+        self.events = None
 
     def load(self, filename):
         datastr = remove_comments(open(filename).read())
         self.data = json.loads(datastr)
         self.start = float(self.data['start'])
         self.end = float(self.data['end'])
+        self.events = self.data['transactions'][0]['events']
         return self.data
 
     def __generate_val(self, d):
@@ -38,9 +40,9 @@ class LogDB:
             d[val['val']] = val['weight']
         return self.__generate_val(d)
 
-    def generate_event(self):
-        events = self.data['transactions'][0]['events']
-        event = events[0]
+    def generate_event(self, event):
+        #events = self.data['transactions'][0]['events']
+        #event = events[0]
         vari = event['vars']
         data = {}
         for var in vari:
@@ -56,23 +58,25 @@ class LogDB:
                 continue
         return data
 
-    def generate_event_many(self):
-        events = self.data['transactions'][0]['events'][0]
+    def generate_event_many(self, event):
+        #event = self.data['transactions'][0]['events'][0]
+        start, end = self.start, self.end
         while self.start <= self.end:
             datalist = []
-            repeat = events['repeat']
+            repeat = event['repeat']
             repeat = random.randint(repeat['lowest'], repeat['highest'])
-            delay_before = events['delay_before']
+            delay_before = event['delay_before']
             delay_before = random.randint(delay_before['lowest'], delay_before['highest'])
-            delay = events['delay']
+            delay = event['delay']
             delay = random.uniform(delay['lowest'], delay['highest'])
             self.start += delay_before
             for i in range(repeat):
-                d = self.generate_event()
+                d = self.generate_event(event)
                 d['timestamp'] = self.start
                 datalist.append(d)
             yield datalist
             self.start += delay
+        self.start, self.end = start, end
 
 class DBHandler:
     def __init__(self):
