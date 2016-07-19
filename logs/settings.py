@@ -1,8 +1,8 @@
 DATABASE = {
-        'drivername' : 'postgres',
+        'drivername' : 'mysql',
         'host' : 'localhost',
-        'port' : '5432',
-        'username' : 'postgres',
-        'password' : 'youcannothackit',
+        'port' : '3306',
+        'username' : 'root',
+        'password' : 'root',
         'database' : 'support'
 }

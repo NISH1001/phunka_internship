@@ -4,6 +4,7 @@ import sys
 
 from log import LogGenerator
 from db import LogDB, DBHandler
+from models import Ticket
 
 def gen_apache(jsonfile, logfile, dump=False):
     with open(logfile, 'w') as f:
