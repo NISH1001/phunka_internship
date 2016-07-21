@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plot
+import random
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
@@ -19,7 +20,6 @@ class LoanPredict:
     def handle_missing_data(self, dataframe):
         # get missing value stat in the form { 'column_name' : True/False }
         missing_status = dataframe.isnull().any().to_dict()
-        print(missing_status)
         
         # now loop over all the columns
         for col in missing_status:
@@ -61,12 +61,13 @@ class LoanPredict:
                 cols.append(col)
         return cols
 
-    def vectorize(self, dataframe, target_col):
+    def vectorize(self, dataframe, unncecessary_cols, target_col):
         # remove unncecessary columns -> heere loan id is not needed
-        train_data = self.remove_columns(dataframe, ['Loan_ID']) 
+        #train_data = self.remove_columns(dataframe, ['Loan_ID']) 
+        train_data = dataframe
 
         # categorical columns
-        cat_cols = self.__get_columns_specific(train_data, "categorical")
+        cat_cols = list(set(self.__get_columns_specific(train_data, "categorical")) - set(unncecessary_cols))
 
         # numerical columns
         num_cols = self.__get_columns_specific(train_data, "numerical")
@@ -81,25 +82,31 @@ class LoanPredict:
             number = LabelEncoder()
             train_data[target_col] = number.fit_transform(train_data[target_col].astype('str'))
 
-        features = list(set(list(train_data.columns)) - {target_col, } )
+        features = list(set(list(train_data.columns)) - {target_col, } - set(unncecessary_cols) )
         return train_data, features
 
-    def train(self, train_data, feature_columns):
+    def train(self, data, feature_columns, target_column):
+        random.seed(100)
         # target column
-        target_col = 'Loan_Status'
         #train_data, features = self.vectorize(dataframe, target_col)
 
-        x_train = train_data[feature_columns].values
-        y_train = train_data[ target_col ].values
+        # separte input/output
+        x_train = data[feature_columns].values
+        y_train = data[ target_column ].values
+
+        # use random forest classifier
         rf = RandomForestClassifier(n_estimators=1000)
         rf.fit(x_train, y_train)
         self.model = rf
 
-    def predict(self, data, feature_columns):
+    def predict(self, data, feature_columns, target_column, prediction_type="classification"):
         x_test = data[feature_columns].values
-        final_status = self.model.predict_proba(x_test)
-        p = final_status[:, 1]
-        print(p)
+        final_status = None
+        if prediction_type == "classification":
+            final_status = self.model.predict(data[feature_columns])
+        else:
+            final_status = self.model.predict_proba(x_test)[:, 1]
+        return final_status
 
 def main():
     predict = LoanPredict()
@@ -111,13 +118,28 @@ def main():
     train_data = predict.handle_missing_data(train_data)
     test_data = predict.handle_missing_data(test_data)
 
-    train_data, features_cols = predict.vectorize(train_data, "Loan_Status")
-    #predict.train_data = train_data
-    predict.train(train_data, features_cols)
+    train_data['Type'] = 'Train'
+    test_data['Type'] = 'Test'
+    full_data = pd.concat([train_data, test_data], axis = 0)
 
-    test, f = predict.vectorize(test_data, "")
-    predict.predict(test, f)
+    target_column = "Loan_Status"
+    unncecessary_cols = ['Loan_ID', 'Type']
 
+    """
+    train_data, feature_columns = predict.vectorize(full_data, unncecessary_cols, "Loan_Status")
+    print(feature_columns)
+    predict.train(train_data, feature_columns)
+    """
+
+    # now train the dataset
+    data, feature_columns = predict.vectorize(full_data, unncecessary_cols, target_column)
+    predict.train(data[data['Type']=='Train'], feature_columns, target_column)
+
+    # now predict using test data
+    test = data[data['Type']=='Test']
+    p = predict.predict(test, feature_columns, target_column, prediction_type="classification")
+    test[target_column] = p
+    print(test)
 
 if __name__ == "__main__":
     main()
