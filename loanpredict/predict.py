@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plot
 import random
+import copy
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import roc_curve, auc
 
 class LoanPredict:
     def __init__(self):
@@ -37,12 +39,6 @@ class LoanPredict:
                 # now fill over the null values with missing value
                 dataframe[col] = dataframe[col].fillna(missing_val)
         return dataframe
-
-    def remove_columns(self, dataframe, columns):
-        df = dataframe
-        for col in columns:
-            df = df.drop(col, axis=1)
-        return df
 
     def display(self):
         print(dataframe)
@@ -108,6 +104,16 @@ class LoanPredict:
             final_status = self.model.predict_proba(x_test)[:, 1]
         return final_status
 
+    def get_performance(self, validate, feature_columns, target_column, prediction_type):
+        # get x, y of validate
+        x_validate = validate[feature_columns].values
+        y_validate = validate[target_column].values
+
+        # now predict y for x_validate
+        status = self.predict(validate, feature_columns, target_column, prediction_type)
+        fpr, tpr, _ = roc_curve(y_validate, status) 
+        return auc(fpr, tpr)
+
 def main():
     predict = LoanPredict()
 
@@ -133,13 +139,22 @@ def main():
 
     # now train the dataset
     data, feature_columns = predict.vectorize(full_data, unncecessary_cols, target_column)
-    predict.train(data[data['Type']=='Train'], feature_columns, target_column)
+    train = data[data['Type'] == 'Train']
+    df = copy.copy(train)
+
+    # allocate data for validation
+    df['is_train'] = np.random.uniform(0, 1, len(df)) <= 0.75
+
+    validate = df[df['is_train'] == False]
+    predict.train(df[df['is_train'] == True], feature_columns, target_column)
 
     # now predict using test data
-    test = data[data['Type']=='Test']
+    test = copy.copy(data[data['Type']=='Test'])
     p = predict.predict(test, feature_columns, target_column, prediction_type="classification")
     test[target_column] = p
-    print(test)
+
+    performance = predict.get_performance(df[df['is_train']==False], feature_columns, target_column, prediction_type="classification")
+    print(performance)
 
 if __name__ == "__main__":
     main()
