@@ -15,3 +15,4 @@ class InstagramcrawlerItem(scrapy.Item):
     bio = scrapy.Field()
     followers = scrapy.Field()
     following = scrapy.Field()
+    item_type = scrapy.Field()

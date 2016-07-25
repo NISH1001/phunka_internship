@@ -27,13 +27,10 @@ class InstaSpider(BaseSpider):
 
     def __init__(self):
         super(InstaSpider, self).__init__() 
+        self.data = load("../../data/instagramcrawler/data.json")
         self.driver = webdriver.Firefox()
-        self.data = load("../data/instagramcrawler/data.json")
         self.instagram = InstagramCrawler(self.driver, self.data)
-        #self.instagram.run()
-
-    def build_start_urls(self, users):
-        pass
+        self.instagram.run()
 
     """
     def init_request(self):
@@ -47,15 +44,39 @@ class InstaSpider(BaseSpider):
         return Request(url=self.start_urls[0], callback=self.login)
     """
 
-    """
     def start_requests(self):
-        data = load("data.json")
-        return [FormRequest(
-                            self.start_urls[0],
-                            formdata = data,
-                            callback=self.logged_in
-                        )]
-    """
+        print("-"*50, "inside start request")
+
+        requests = [
+                        Request(
+                            url="https://www.instagram.com/{}".format(self.data['USERNAME']), 
+                            callback=self.parse,
+                            meta = { "type" : "owner" }
+                        )
+
+                ]
+
+        requests += [
+                        Request(
+                            url="https://www.instagram.com/{}".format(username), 
+                            callback=self.parse,
+                            meta = { "type" : "follower" }
+                        )
+
+                        for username in self.instagram.followers
+                ]
+
+        requests += [
+                        Request(
+                            url="https://www.instagram.com/{}".format(username), 
+                            callback=self.parse,
+                            meta = { "type" : "following" }
+                        )
+
+                        for username in self.instagram.following
+                ]
+        return requests
+
 
     def clean_data(self, data):
         script_text = re.sub(r'<script type="text/javascript">window._sharedData = ', "", data)
@@ -64,9 +85,7 @@ class InstaSpider(BaseSpider):
         data = json.loads(script_text)
         return data['entry_data']['ProfilePage'][0]['user']
 
-
     def parse(self, response):
-        # immediately login
         item = InstagramcrawlerItem()
         print("-"*50, "inside parse")
         sel = Selector(response)
@@ -75,10 +94,12 @@ class InstaSpider(BaseSpider):
 
         item['full_name'] = user['full_name']
         item['username'] = user['username']
-        item['bio'] = user['biography']
+        item['bio'] = user['biography'] if user['biography'] else ""
         item['followers'] = user['followed_by']['count']
         item['following'] = user['follows']['count']
-        
+
+        item['item_type'] = response.meta['type']
+
         yield item
 
 

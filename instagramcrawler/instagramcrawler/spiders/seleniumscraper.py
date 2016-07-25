@@ -64,7 +64,7 @@ class InstagramCrawler:
         # scrolling stuffs by simulating the "END" button
         index = 1 if scrape_type=="follower" else 2
         for i in range(int((self.numbers[index]-10)/9) + 2):
-            print("scrolling...")
+            print("scrolling...{}".format(scrape_type))
             time.sleep(3)
             self.driver.find_element_by_xpath(xp).send_keys(Keys.END)
 
