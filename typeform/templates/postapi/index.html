@@ -1,0 +1,15 @@
+{% extends 'postapi/base.html' %}
+{% load staticfiles %}
+
+{% block head %}
+    <title>Index</title>
+{% endblock %}
+
+{% block content %}
+
+{% if test %}
+    <p> The context variable is "{{ test }}" </p>
+{% endif %}
+
+{% endblock %}
+
