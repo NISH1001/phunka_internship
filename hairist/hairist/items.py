@@ -9,7 +9,7 @@ import scrapy
 
 
 class HairistItem(scrapy.Item):
-    idx                     = scrapy.Field() # id
+    id                      = scrapy.Field() # id
     yetkili                 = scrapy.Field() # authorized
     kuafor_salonu_turu      = scrapy.Field() # barber shop type
     calisma_saatleri        = scrapy.Field() # working hours
