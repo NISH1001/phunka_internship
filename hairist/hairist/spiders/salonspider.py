@@ -13,7 +13,7 @@ class SalonSpider(BaseSpider):
             ]
 
     def __init__(self):
-        self.start = 2190
+        self.start = 1
         self.end = 2203
         self.url = "https://www.hairist.com.tr/index.php?page=salonDetay&salonID={}"
 
