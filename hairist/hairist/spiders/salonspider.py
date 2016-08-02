@@ -13,7 +13,7 @@ class SalonSpider(BaseSpider):
             ]
 
     def __init__(self):
-        self.start = 1
+        self.start = 2203
         self.end = 2203
         self.url = "https://www.hairist.com.tr/index.php?page=salonDetay&salonID={}"
 
@@ -35,7 +35,7 @@ class SalonSpider(BaseSpider):
         selector = Selector(response)
         item = HairistItem()
         try:
-            latlng = response.xpath("//div[@class='google-maps-link']/a/@href").extract()
+            #latlng = response.xpath("//div[@class='google-maps-link']")
             table = response.xpath("//table[@class='salondetay']")[0]
             tds = table.xpath(".//tr/td[3]")
 
@@ -57,9 +57,12 @@ class SalonSpider(BaseSpider):
                 image_urls[index] = re.sub(r"type=\d+","type=6", url)
             item['image_urls'] = image_urls
 
+            iframe = response.xpath("//iframe/@src")[0].extract()
+            found = re.search(r"2d(.*)!3d(\d+\.\d+)!", iframe)
+            latlng = [ found.group(1), found.group(2)]
+            item['latlng'] = latlng
+
         except:
-            #print("-"*50)
-            #print(response.url)
             return
         yield item
 
