@@ -24,3 +24,4 @@ class HairistItem(scrapy.Item):
     latlng                  = scrapy.Field() # google map coordinate
     image_urls              = scrapy.Field()
     images                  = scrapy.Field()
+    image_local_path        = scrapy.Field()

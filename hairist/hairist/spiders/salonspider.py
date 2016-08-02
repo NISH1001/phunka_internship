@@ -51,6 +51,7 @@ class SalonSpider(BaseSpider):
             item['adres']                   = tds[8].xpath("./text()").extract_first().strip()
             item['ilce_il']                 = tds[9].xpath("./text()").extract_first().strip()
             item['email']                   = tds[10].xpath(".//a/text()").extract_first()
+            item['image_local_path'] = ''
 
             image_urls = response.xpath("//ul[@class='gallery']//img/@src").extract()[1:]
             for index, url in enumerate(image_urls):

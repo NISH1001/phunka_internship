@@ -30,4 +30,5 @@ class Hairist(DeclarativeBase):
     ilce_il                 =   Column(String) 
     email                   =   Column(String) 
     latlng                  =   Column(String) 
+    image_local_path        =   Column(String)
     image_urls              =   Column(String) 

@@ -92,6 +92,8 @@ class HairistImagePipeline(ImagesPipeline):
             # new path
             target_path = os.path.join(storage, my_path)
 
+            item['image_local_path'] = target_path
+
             # now move to the new path
             if not os.path.exists(target_path):
                 os.makedirs(target_path)
