@@ -17,6 +17,7 @@ from hairist.models import Hairist, db_connect, DeclarativeBase
 
 import os
 import shutil
+import glob
 
 
 class HairistPipeline(object):
@@ -74,6 +75,7 @@ class HairistImagePipeline(ImagesPipeline):
 
     # stuffs to do after the request is completed
     def item_completed(self, results, item, info):
+        path = None
         for result in [x for ok, x in results if ok]:
             try:
                 print("="*30)
@@ -106,6 +108,7 @@ class HairistImagePipeline(ImagesPipeline):
                     os.makedirs(target_path)
                 shutil.move(path, target_path)
             except shutil.Error:
+                os.remove(path)
                 continue
         return item
 
