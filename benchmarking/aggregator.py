@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+from operator import itemgetter
 
 
 class Aggregator:
@@ -31,15 +32,26 @@ class Aggregator:
     def group(self, columns):
         self.groups= self.data.groupby(columns)
 
+    def run(self):
+        keys = list(set(self.groups.groups.keys()))
+        keys = sorted(keys, key = itemgetter(0,1, 2 ))
+        for key in keys:
+            print("-"*10, key )
+            print("\n")
+            store = self.get_store_data(key)
+            print(self.quantiles['ordertotalrevenuesales'])
+            print(self.calculate_quantile_store(store, ['ordertotalrevenuesales'], self.q))
+            print("\n")
+
     def get_store_data(self, store_tuple):
         return self.groups.get_group(store_tuple)
 
 def main():
     agg = Aggregator(filename="../data/all_records.csv")
     agg.group(columns = ['locationstorenumber', 'paymentyear', 'paymentweeknumber'])
-    store = agg.get_store_data( (986, 2016, 2) )
-    print(agg.quantiles['ordertotalrevenuesales'])
-    print(agg.calculate_quantile_store(store, ['ordertotalrevenuesales'], agg.q))
+    #store = agg.get_store_data( (986, 2016, 2) )
+    #print(agg.calculate_quantile_store(store, ['ordertotalrevenuesales'], agg.q))
+    agg.run()
 
 if __name__ == "__main__":
     main()
